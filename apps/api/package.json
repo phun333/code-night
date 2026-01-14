@@ -11,6 +11,7 @@
     "@turkcell/shared": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "prisma": "^5.9.1",
     "socket.io": "^4.7.4",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
@@ -22,7 +23,6 @@
     "@types/node": "^20.11.5",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
-    "prisma": "^5.9.1",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   },
