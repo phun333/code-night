@@ -1,5 +1,4 @@
 import { prisma } from '../index';
-import { URGENCY_WEIGHTS, SERVICE_WEIGHTS, WAITING_TIME_BONUS_PER_10_MIN } from '@turkcell/shared';
 
 interface RequestWithUser {
   id: string;
@@ -16,30 +15,50 @@ interface RequestWithUser {
   };
 }
 
+// Get weight from AllocationRule table
+async function getWeight(category: string, key: string): Promise<number> {
+  const rule = await prisma.allocationRule.findFirst({
+    where: {
+      category,
+      key,
+      isActive: true,
+    },
+  });
+  return rule?.weight ?? 0;
+}
+
 export async function calculatePriority(request: RequestWithUser): Promise<number> {
   let score = 0;
 
   // 1. Urgency weight
-  const urgencyWeight = URGENCY_WEIGHTS[request.urgency as keyof typeof URGENCY_WEIGHTS] || 0;
+  const urgencyWeight = await getWeight('URGENCY', request.urgency);
   score += urgencyWeight;
 
   // 2. Service weight
-  const serviceWeight = SERVICE_WEIGHTS[request.service as keyof typeof SERVICE_WEIGHTS] || 0;
+  const serviceWeight = await getWeight('SERVICE', request.service);
   score += serviceWeight;
 
-  // 3. Waiting time bonus (points per 10 minutes)
+  // 3. Request type weight
+  const requestTypeWeight = await getWeight('REQUEST_TYPE', request.requestType);
+  score += requestTypeWeight;
+
+  // 4. Waiting time bonus (from DB)
+  const waitingBonusRule = await getWeight('WAITING_TIME', 'BONUS_PER_SECOND');
   const waitingMs = Date.now() - new Date(request.createdAt).getTime();
-  const waitingMinutes = waitingMs / 60000;
-  const waitingBonus = Math.floor(waitingMinutes / 10) * WAITING_TIME_BONUS_PER_10_MIN;
+  const waitingSeconds = Math.floor(waitingMs / 1000);
+  const waitingBonus = waitingSeconds * waitingBonusRule;
   score += waitingBonus;
 
-  // 4. Custom rules from database
-  const rules = await prisma.allocationRule.findMany({
-    where: { isActive: true },
+  // 5. Custom rules (category = 'CUSTOM')
+  const customRules = await prisma.allocationRule.findMany({
+    where: {
+      category: 'CUSTOM',
+      isActive: true,
+    },
   });
 
-  for (const rule of rules) {
-    if (evaluateCondition(rule.condition, request)) {
+  for (const rule of customRules) {
+    if (rule.condition && evaluateCondition(rule.condition, request)) {
       score += rule.weight;
     }
   }
@@ -48,30 +67,26 @@ export async function calculatePriority(request: RequestWithUser): Promise<numbe
 }
 
 function evaluateCondition(condition: string, request: RequestWithUser): boolean {
-  // Simple condition evaluator
-  // Supports: urgency == 'HIGH', service == 'Superonline', etc.
   try {
-    // Parse condition like "urgency == 'HIGH'"
+    // Parse condition like "city == 'Istanbul'"
     const match = condition.match(/(\w+)\s*==\s*'([^']+)'/);
     if (match) {
       const [, field, value] = match;
+      if (field === 'city') {
+        return request.user.city === value;
+      }
       const requestValue = (request as any)[field];
       return requestValue === value;
     }
-
-    // Parse condition like "requestType == 'CONNECTION_ISSUE'"
-    const matchType = condition.match(/request_type\s*==\s*'([^']+)'/);
-    if (matchType) {
-      return request.requestType === matchType[1];
-    }
-
     return false;
   } catch {
     return false;
   }
 }
 
-export async function calculateAllPriorities(): Promise<{ requestId: string; priorityScore: number }[]> {
+export async function calculateAllPriorities(): Promise<
+  { requestId: string; priorityScore: number }[]
+> {
   const pendingRequests = await prisma.request.findMany({
     where: { status: 'PENDING' },
     include: { user: true },
@@ -81,7 +96,7 @@ export async function calculateAllPriorities(): Promise<{ requestId: string; pri
     pendingRequests.map(async (request) => ({
       requestId: request.id,
       priorityScore: await calculatePriority(request),
-    }))
+    })),
   );
 
   return priorities.sort((a, b) => b.priorityScore - a.priorityScore);

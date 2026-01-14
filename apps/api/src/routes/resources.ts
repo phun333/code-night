@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { prisma, io } from '../index';
+import { prisma } from '../index';
 
 const router = Router();
 
@@ -37,60 +37,6 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching resources:', error);
     res.status(500).json({ error: 'Failed to fetch resources' });
-  }
-});
-
-// GET /api/resources/:id - Get single resource
-router.get('/:id', async (req, res) => {
-  try {
-    const resource = await prisma.resource.findUnique({
-      where: { id: req.params.id },
-      include: {
-        allocations: {
-          include: {
-            request: {
-              include: { user: true },
-            },
-          },
-        },
-      },
-    });
-
-    if (!resource) {
-      return res.status(404).json({ error: 'Resource not found' });
-    }
-
-    res.json({
-      ...resource,
-      activeAllocations: resource.allocations.filter((a) => a.status === 'ASSIGNED').length,
-    });
-  } catch (error) {
-    console.error('Error fetching resource:', error);
-    res.status(500).json({ error: 'Failed to fetch resource' });
-  }
-});
-
-// PATCH /api/resources/:id - Update resource
-router.patch('/:id', async (req, res) => {
-  try {
-    const { status, capacity } = req.body;
-
-    const updateData: any = {};
-    if (status) updateData.status = status;
-    if (capacity) updateData.capacity = capacity;
-
-    const resource = await prisma.resource.update({
-      where: { id: req.params.id },
-      data: updateData,
-    });
-
-    io.emit('resource:updated', resource);
-    io.emit('dashboard:refresh');
-
-    res.json(resource);
-  } catch (error) {
-    console.error('Error updating resource:', error);
-    res.status(500).json({ error: 'Failed to update resource' });
   }
 });
 

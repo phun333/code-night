@@ -29,12 +29,12 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
     },
     servers: [
       {
-        url: 'https://api.codenight.aliselvet.xyz',
-        description: 'Production Server',
-      },
-      {
         url: 'http://localhost:3001',
         description: 'Development Server',
+      },
+      {
+        url: 'https://api.codenight.aliselvet.xyz',
+        description: 'Production Server',
       },
     ],
     tags: [
@@ -43,7 +43,6 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
       { name: 'Allocations', description: 'Tahsis işlemleri' },
       { name: 'Rules', description: 'Tahsis kuralları' },
       { name: 'Dashboard', description: 'Dashboard ve istatistikler' },
-      { name: 'Auth', description: 'Kimlik doğrulama' },
       { name: 'Health', description: 'Sistem sağlık kontrolü' },
     ],
     components: {
@@ -61,42 +60,45 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
           properties: {
             id: { type: 'string', example: 'clr1abc123' },
             userId: { type: 'string', example: 'U1' },
-            service: { type: 'string', enum: ['Superonline', 'Paycell', 'TV+'], example: 'Superonline' },
+            service: {
+              type: 'string',
+              enum: ['Superonline', 'Paycell', 'TV+'],
+              example: 'Superonline',
+            },
             requestType: {
               type: 'string',
               enum: ['CONNECTION_ISSUE', 'PAYMENT_PROBLEM', 'STREAMING_ISSUE', 'SPEED_COMPLAINT'],
               example: 'CONNECTION_ISSUE',
             },
             urgency: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'], example: 'HIGH' },
-            status: { type: 'string', enum: ['PENDING', 'ASSIGNED', 'COMPLETED'], example: 'PENDING' },
+            status: {
+              type: 'string',
+              enum: ['PENDING', 'ASSIGNED', 'COMPLETED'],
+              example: 'PENDING',
+            },
             createdAt: { type: 'string', format: 'date-time' },
             user: { $ref: '#/components/schemas/User' },
             priorityScore: { type: 'integer', example: 85 },
-          },
-        },
-        CreateRequest: {
-          type: 'object',
-          required: ['userId', 'service', 'requestType', 'urgency'],
-          properties: {
-            userId: { type: 'string', example: 'U1' },
-            service: { type: 'string', enum: ['Superonline', 'Paycell', 'TV+'] },
-            requestType: {
-              type: 'string',
-              enum: ['CONNECTION_ISSUE', 'PAYMENT_PROBLEM', 'STREAMING_ISSUE', 'SPEED_COMPLAINT'],
-            },
-            urgency: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'] },
           },
         },
         Resource: {
           type: 'object',
           properties: {
             id: { type: 'string', example: 'R1' },
-            resourceType: { type: 'string', enum: ['TECH_TEAM', 'SUPPORT_AGENT'], example: 'TECH_TEAM' },
+            resourceType: {
+              type: 'string',
+              enum: ['TECH_TEAM', 'SUPPORT_AGENT'],
+              example: 'TECH_TEAM',
+            },
             capacity: { type: 'integer', example: 5 },
             city: { type: 'string', example: 'Istanbul' },
             status: { type: 'string', enum: ['AVAILABLE', 'BUSY'], example: 'AVAILABLE' },
             activeAllocations: { type: 'integer', example: 2 },
-            utilization: { type: 'integer', description: 'Yüzde olarak kullanım oranı', example: 40 },
+            utilization: {
+              type: 'integer',
+              description: 'Yüzde olarak kullanım oranı',
+              example: 40,
+            },
           },
         },
         Allocation: {
@@ -212,54 +214,75 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
           summary: 'Tüm talepleri listele',
           description: 'Filtreleme seçenekleriyle birlikte tüm destek taleplerini getirir',
           parameters: [
-            { name: 'status', in: 'query', schema: { type: 'string', enum: ['PENDING', 'ASSIGNED', 'COMPLETED'] }, description: 'Duruma göre filtrele' },
-            { name: 'urgency', in: 'query', schema: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'] }, description: 'Aciliyete göre filtrele' },
-            { name: 'service', in: 'query', schema: { type: 'string', enum: ['Superonline', 'Paycell', 'TV+'] }, description: 'Hizmete göre filtrele' },
+            {
+              name: 'status',
+              in: 'query',
+              schema: { type: 'string', enum: ['PENDING', 'ASSIGNED', 'COMPLETED'] },
+              description: 'Duruma göre filtrele',
+            },
+            {
+              name: 'urgency',
+              in: 'query',
+              schema: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'] },
+              description: 'Aciliyete göre filtrele',
+            },
+            {
+              name: 'service',
+              in: 'query',
+              schema: { type: 'string', enum: ['Superonline', 'Paycell', 'TV+'] },
+              description: 'Hizmete göre filtrele',
+            },
           ],
           responses: {
             200: {
               description: 'Talep listesi',
-              content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Request' } } } },
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { $ref: '#/components/schemas/Request' } },
+                },
+              },
             },
-            500: { description: 'Sunucu hatası', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+            500: {
+              description: 'Sunucu hatası',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+            },
           },
         },
         post: {
           tags: ['Requests'],
           summary: 'Yeni talep oluştur',
-          description: 'Yeni bir destek talebi oluşturur. WebSocket üzerinden `request:new` eventi yayınlanır.',
+          description:
+            'Yeni bir destek talebi oluşturur. WebSocket üzerinden `request:new` eventi yayınlanır.',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateRequest' } } },
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['userId', 'service', 'requestType', 'urgency'],
+                  properties: {
+                    userId: { type: 'string', example: 'U1' },
+                    service: { type: 'string', enum: ['Superonline', 'Paycell', 'TV+'] },
+                    requestType: { type: 'string', example: 'CONNECTION_ISSUE' },
+                    urgency: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LOW'] },
+                  },
+                },
+              },
+            },
           },
           responses: {
-            201: { description: 'Talep oluşturuldu', content: { 'application/json': { schema: { $ref: '#/components/schemas/Request' } } } },
-            400: { description: 'Geçersiz veri', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
-            500: { description: 'Sunucu hatası', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
-          },
-        },
-      },
-      '/api/requests/{id}': {
-        get: {
-          tags: ['Requests'],
-          summary: 'Tek talep getir',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'Talep ID' }],
-          responses: {
-            200: { description: 'Talep detayı', content: { 'application/json': { schema: { $ref: '#/components/schemas/Request' } } } },
-            404: { description: 'Talep bulunamadı', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
-          },
-        },
-        patch: {
-          tags: ['Requests'],
-          summary: 'Talep durumunu güncelle',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          requestBody: {
-            required: true,
-            content: { 'application/json': { schema: { type: 'object', properties: { status: { type: 'string', enum: ['PENDING', 'ASSIGNED', 'COMPLETED'] } } } } },
-          },
-          responses: {
-            200: { description: 'Güncellendi', content: { 'application/json': { schema: { $ref: '#/components/schemas/Request' } } } },
-            500: { description: 'Sunucu hatası', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+            201: {
+              description: 'Talep oluşturuldu',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Request' } } },
+            },
+            400: {
+              description: 'Geçersiz veri',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+            },
+            500: {
+              description: 'Sunucu hatası',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+            },
           },
         },
       },
@@ -269,43 +292,28 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
           summary: 'Tüm kaynakları listele',
           description: 'Kullanım oranları ile birlikte tüm kaynakları getirir',
           parameters: [
-            { name: 'city', in: 'query', schema: { type: 'string' }, description: 'Şehre göre filtrele' },
-            { name: 'status', in: 'query', schema: { type: 'string', enum: ['AVAILABLE', 'BUSY'] }, description: 'Duruma göre filtrele' },
+            {
+              name: 'city',
+              in: 'query',
+              schema: { type: 'string' },
+              description: 'Şehre göre filtrele',
+            },
+            {
+              name: 'status',
+              in: 'query',
+              schema: { type: 'string', enum: ['AVAILABLE', 'BUSY'] },
+              description: 'Duruma göre filtrele',
+            },
           ],
           responses: {
-            200: { description: 'Kaynak listesi', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Resource' } } } } },
-          },
-        },
-      },
-      '/api/resources/{id}': {
-        get: {
-          tags: ['Resources'],
-          summary: 'Tek kaynak getir',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: {
-            200: { description: 'Kaynak detayı', content: { 'application/json': { schema: { $ref: '#/components/schemas/Resource' } } } },
-            404: { description: 'Kaynak bulunamadı' },
-          },
-        },
-        patch: {
-          tags: ['Resources'],
-          summary: 'Kaynağı güncelle',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          requestBody: {
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    status: { type: 'string', enum: ['AVAILABLE', 'BUSY'] },
-                    capacity: { type: 'integer' },
-                  },
+            200: {
+              description: 'Kaynak listesi',
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { $ref: '#/components/schemas/Resource' } },
                 },
               },
             },
-          },
-          responses: {
-            200: { description: 'Güncellendi', content: { 'application/json': { schema: { $ref: '#/components/schemas/Resource' } } } },
           },
         },
       },
@@ -313,109 +321,61 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
         get: {
           tags: ['Allocations'],
           summary: 'Tüm tahsisleri listele',
-          parameters: [{ name: 'status', in: 'query', schema: { type: 'string', enum: ['ASSIGNED', 'COMPLETED'] } }],
-          responses: {
-            200: { description: 'Tahsis listesi', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Allocation' } } } } },
-          },
-        },
-        post: {
-          tags: ['Allocations'],
-          summary: 'Talep tahsis et',
-          description: 'Belirli bir talebi uygun bir kaynağa tahsis eder',
-          requestBody: {
-            required: true,
-            content: { 'application/json': { schema: { type: 'object', required: ['requestId'], properties: { requestId: { type: 'string' } } } } },
-          },
-          responses: {
-            201: {
-              description: 'Tahsis başarılı',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      success: { type: 'boolean' },
-                      allocation: { $ref: '#/components/schemas/Allocation' },
-                      message: { type: 'string' },
-                    },
-                  },
-                },
-              },
+          parameters: [
+            {
+              name: 'status',
+              in: 'query',
+              schema: { type: 'string', enum: ['ASSIGNED', 'COMPLETED'] },
             },
-            400: { description: 'Tahsis yapılamadı (kaynak yok veya talep zaten tahsis edilmiş)' },
-          },
-        },
-      },
-      '/api/allocations/auto': {
-        post: {
-          tags: ['Allocations'],
-          summary: 'Otomatik tahsis',
-          description: 'Tüm bekleyen talepleri öncelik sırasına göre otomatik olarak tahsis eder',
+          ],
           responses: {
             200: {
-              description: 'Otomatik tahsis sonucu',
+              description: 'Tahsis listesi',
               content: {
                 'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      message: { type: 'string', example: 'Auto-allocation complete: 5 successful, 2 queued/failed' },
-                      results: { type: 'array', items: { type: 'object' } },
-                    },
-                  },
+                  schema: { type: 'array', items: { $ref: '#/components/schemas/Allocation' } },
                 },
               },
             },
           },
         },
       },
-      '/api/allocations/{id}': {
-        patch: {
-          tags: ['Allocations'],
-          summary: 'Tahsis durumunu güncelle',
-          description: 'Tahsis tamamlandığında kaynak serbest bırakılır',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          requestBody: {
-            content: { 'application/json': { schema: { type: 'object', properties: { status: { type: 'string', enum: ['ASSIGNED', 'COMPLETED'] } } } } },
-          },
+      '/api/rules/by-category': {
+        get: {
+          tags: ['Rules'],
+          summary: 'Kuralları kategoriye göre listele',
+          description: 'Tüm kuralları kategoriye göre gruplandırılmış şekilde getirir',
           responses: {
-            200: { description: 'Güncellendi', content: { 'application/json': { schema: { $ref: '#/components/schemas/Allocation' } } } },
+            200: {
+              description: 'Kategoriye göre gruplanmış kurallar',
+              content: { 'application/json': { schema: { type: 'object' } } },
+            },
           },
         },
       },
       '/api/rules': {
-        get: {
-          tags: ['Rules'],
-          summary: 'Tahsis kurallarını listele',
-          parameters: [{ name: 'isActive', in: 'query', schema: { type: 'boolean' }, description: 'Aktif/pasif filtresi' }],
-          responses: {
-            200: { description: 'Kural listesi', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/AllocationRule' } } } } },
-          },
-        },
         post: {
           tags: ['Rules'],
           summary: 'Yeni kural oluştur',
-          description: 'Öncelik hesaplamasında kullanılacak yeni bir kural ekler',
+          description: 'Öncelik hesaplamasında kullanılacak yeni bir custom kural ekler',
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateRule' } } },
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/CreateRule' } },
+            },
           },
           responses: {
-            201: { description: 'Kural oluşturuldu', content: { 'application/json': { schema: { $ref: '#/components/schemas/AllocationRule' } } } },
+            201: {
+              description: 'Kural oluşturuldu',
+              content: {
+                'application/json': { schema: { $ref: '#/components/schemas/AllocationRule' } },
+              },
+            },
             400: { description: 'Geçersiz veri' },
           },
         },
       },
       '/api/rules/{id}': {
-        get: {
-          tags: ['Rules'],
-          summary: 'Tek kural getir',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: {
-            200: { description: 'Kural detayı', content: { 'application/json': { schema: { $ref: '#/components/schemas/AllocationRule' } } } },
-            404: { description: 'Kural bulunamadı' },
-          },
-        },
         patch: {
           tags: ['Rules'],
           summary: 'Kuralı güncelle',
@@ -426,7 +386,6 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
                 schema: {
                   type: 'object',
                   properties: {
-                    condition: { type: 'string' },
                     weight: { type: 'integer' },
                     isActive: { type: 'boolean' },
                   },
@@ -438,7 +397,7 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
         },
         delete: {
           tags: ['Rules'],
-          summary: 'Kuralı sil',
+          summary: 'Custom kuralı sil',
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           responses: { 204: { description: 'Silindi' } },
         },
@@ -447,48 +406,15 @@ Bu API, Turkcell hizmetleri (Superonline, Paycell, TV+) için destek taleplerini
         get: {
           tags: ['Dashboard'],
           summary: 'Dashboard özeti',
-          description: 'Tüm sistem metrikleri, kaynak kullanımı, son tahsisler ve öncelik kuyruğunu getirir',
-          responses: {
-            200: { description: 'Dashboard verileri', content: { 'application/json': { schema: { $ref: '#/components/schemas/DashboardSummary' } } } },
-          },
-        },
-      },
-      '/api/auth/login': {
-        post: {
-          tags: ['Auth'],
-          summary: 'Giriş yap',
-          description: 'Mock authentication - kullanıcı seçimi ile giriş',
-          requestBody: {
-            required: true,
-            content: { 'application/json': { schema: { type: 'object', required: ['userId'], properties: { userId: { type: 'string', example: 'U1' } } } } },
-          },
+          description:
+            'Tüm sistem metrikleri, kaynak kullanımı, son tahsisler ve öncelik kuyruğunu getirir',
           responses: {
             200: {
-              description: 'Giriş başarılı',
+              description: 'Dashboard verileri',
               content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      message: { type: 'string' },
-                      user: { $ref: '#/components/schemas/User' },
-                      token: { type: 'string' },
-                    },
-                  },
-                },
+                'application/json': { schema: { $ref: '#/components/schemas/DashboardSummary' } },
               },
             },
-            404: { description: 'Kullanıcı bulunamadı' },
-          },
-        },
-      },
-      '/api/auth/users': {
-        get: {
-          tags: ['Auth'],
-          summary: 'Kullanıcıları listele',
-          description: 'Mock login için mevcut kullanıcıları getirir',
-          responses: {
-            200: { description: 'Kullanıcı listesi', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/User' } } } } },
           },
         },
       },

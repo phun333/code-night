@@ -6,29 +6,144 @@ async function main() {
   // Clear existing data
   await prisma.allocation.deleteMany();
   await prisma.request.deleteMany();
+  await prisma.systemLog.deleteMany();
   await prisma.resource.deleteMany();
   await prisma.user.deleteMany();
   await prisma.allocationRule.deleteMany();
 
-  // Seed Users
-  const users = [
-    { id: 'U1', name: 'Ayşe Yılmaz', email: 'ayse@test.com', password: '123456', city: 'Istanbul', role: 'USER' },
-    { id: 'U2', name: 'Ali Demir', email: 'ali@test.com', password: '123456', city: 'Ankara', role: 'USER' },
-    { id: 'U3', name: 'Deniz Kaya', email: 'deniz@test.com', password: '123456', city: 'Izmir', role: 'USER' },
-    { id: 'U4', name: 'Mert Öztürk', email: 'mert@test.com', password: '123456', city: 'Bursa', role: 'USER' },
-    { id: 'ADMIN1', name: 'Admin Turkcell', email: 'admin@turkcell.com', password: 'admin123', city: 'Istanbul', role: 'ADMIN' },
+  // Seed Admin User (only admin has password for login)
+  await prisma.user.create({
+    data: {
+      id: 'ADMIN1',
+      name: 'Admin Turkcell',
+      email: 'admin@turkcell.com',
+      password: 'admin123',
+      city: 'Istanbul',
+      role: 'ADMIN',
+    },
+  });
+  console.log('Seeded 1 admin user');
+
+  // Seed 100 regular users (no password needed - they don't login)
+  const turkishNames = [
+    'Ahmet',
+    'Mehmet',
+    'Ali',
+    'Mustafa',
+    'Hasan',
+    'Huseyin',
+    'Ibrahim',
+    'Ismail',
+    'Yusuf',
+    'Osman',
+    'Emre',
+    'Can',
+    'Baris',
+    'Burak',
+    'Cem',
+    'Deniz',
+    'Eren',
+    'Fatih',
+    'Gokhan',
+    'Hakan',
+    'Kemal',
+    'Levent',
+    'Murat',
+    'Nihat',
+    'Onur',
+    'Ozgur',
+    'Serkan',
+    'Tamer',
+    'Ugur',
+    'Volkan',
+    'Ayse',
+    'Fatma',
+    'Zeynep',
+    'Elif',
+    'Merve',
+    'Busra',
+    'Esra',
+    'Seda',
+    'Derya',
+    'Ceren',
+    'Gul',
+    'Hande',
+    'Ipek',
+    'Melis',
+    'Naz',
+    'Pinar',
+    'Sibel',
+    'Tugba',
+    'Yasemin',
+    'Zehra',
   ];
+  const turkishSurnames = [
+    'Yilmaz',
+    'Kaya',
+    'Demir',
+    'Celik',
+    'Sahin',
+    'Yildiz',
+    'Yildirim',
+    'Ozturk',
+    'Aydin',
+    'Ozdemir',
+    'Arslan',
+    'Dogan',
+    'Kilic',
+    'Aslan',
+    'Cetin',
+    'Kara',
+    'Koc',
+    'Kurt',
+    'Ozkan',
+    'Simsek',
+  ];
+  const cities = ['Istanbul', 'Ankara', 'Izmir'];
+
+  const users = [];
+  for (let i = 1; i <= 100; i++) {
+    const firstName = turkishNames[Math.floor(Math.random() * turkishNames.length)];
+    const lastName = turkishSurnames[Math.floor(Math.random() * turkishSurnames.length)];
+    const city = cities[Math.floor(Math.random() * cities.length)];
+
+    users.push({
+      id: `USER-${i.toString().padStart(3, '0')}`,
+      name: `${firstName} ${lastName}`,
+      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`,
+      city: city,
+      role: 'USER',
+    });
+  }
 
   for (const user of users) {
     await prisma.user.create({ data: user });
   }
-  console.log(`Seeded ${users.length} users`);
+  console.log(`Seeded ${users.length} regular users`);
 
-  // Seed Resources
+  // Seed Resources - 6 kisi toplam (2 Istanbul, 2 Ankara, 2 Izmir)
   const resources = [
-    { id: 'RES-1', resourceType: 'TECH_TEAM', capacity: 2, city: 'Istanbul', status: 'AVAILABLE' },
-    { id: 'RES-2', resourceType: 'SUPPORT_AGENT', capacity: 3, city: 'Ankara', status: 'AVAILABLE' },
-    { id: 'RES-3', resourceType: 'TECH_TEAM', capacity: 1, city: 'Izmir', status: 'AVAILABLE' },
+    {
+      id: 'RES-IST',
+      resourceType: 'SUPPORT_TEAM',
+      capacity: 2,
+      city: 'Istanbul',
+      status: 'AVAILABLE',
+    },
+    {
+      id: 'RES-ANK',
+      resourceType: 'SUPPORT_TEAM',
+      capacity: 2,
+      city: 'Ankara',
+      status: 'AVAILABLE',
+    },
+    {
+      id: 'RES-IZM',
+      resourceType: 'SUPPORT_TEAM',
+      capacity: 2,
+      city: 'Izmir',
+      status: 'AVAILABLE',
+    },
   ];
 
   for (const resource of resources) {
@@ -36,48 +151,212 @@ async function main() {
   }
   console.log(`Seeded ${resources.length} resources`);
 
-  // Seed Requests
-  const requests = [
-    { id: 'REQ-1', userId: 'U1', service: 'Superonline', requestType: 'CONNECTION_ISSUE', urgency: 'HIGH', createdAt: new Date('2026-03-12T09:30:00Z'), status: 'PENDING' },
-    { id: 'REQ-2', userId: 'U2', service: 'Paycell', requestType: 'PAYMENT_PROBLEM', urgency: 'MEDIUM', createdAt: new Date('2026-03-12T10:00:00Z'), status: 'PENDING' },
-    { id: 'REQ-3', userId: 'U3', service: 'TV+', requestType: 'STREAMING_ISSUE', urgency: 'LOW', createdAt: new Date('2026-03-12T10:15:00Z'), status: 'PENDING' },
-    { id: 'REQ-4', userId: 'U4', service: 'Superonline', requestType: 'SPEED_COMPLAINT', urgency: 'HIGH', createdAt: new Date('2026-03-12T10:20:00Z'), status: 'PENDING' },
+  // Seed AllocationRules - All weights in one table
+  const allocationRules = [
+    // Urgency weights
+    {
+      name: 'Yuksek Oncelik',
+      category: 'URGENCY',
+      key: 'HIGH',
+      weight: 50,
+      isActive: true,
+      description: 'Acil talepler icin yuksek agirlik',
+    },
+    {
+      name: 'Orta Oncelik',
+      category: 'URGENCY',
+      key: 'MEDIUM',
+      weight: 30,
+      isActive: true,
+      description: 'Normal oncelikli talepler',
+    },
+    {
+      name: 'Dusuk Oncelik',
+      category: 'URGENCY',
+      key: 'LOW',
+      weight: 10,
+      isActive: true,
+      description: 'Dusuk oncelikli talepler',
+    },
+    // Service weights
+    {
+      name: 'Superonline',
+      category: 'SERVICE',
+      key: 'Superonline',
+      weight: 20,
+      isActive: true,
+      description: 'Superonline servisi',
+    },
+    {
+      name: 'Paycell',
+      category: 'SERVICE',
+      key: 'Paycell',
+      weight: 10,
+      isActive: true,
+      description: 'Paycell servisi',
+    },
+    {
+      name: 'TV+',
+      category: 'SERVICE',
+      key: 'TV+',
+      weight: 5,
+      isActive: true,
+      description: 'TV+ servisi',
+    },
+    // Waiting time bonus
+    {
+      name: 'Bekleme Bonusu',
+      category: 'WAITING_TIME',
+      key: 'BONUS_PER_SECOND',
+      weight: 2,
+      isActive: true,
+      description: 'Her saniye +2 puan',
+    },
+    // Request Types - Superonline
+    {
+      name: 'Baglanti Sorunu',
+      category: 'REQUEST_TYPE',
+      key: 'CONNECTION_ISSUE',
+      weight: 5,
+      isActive: true,
+    },
+    {
+      name: 'Hiz Sikayeti',
+      category: 'REQUEST_TYPE',
+      key: 'SPEED_COMPLAINT',
+      weight: 0,
+      isActive: true,
+    },
+    {
+      name: 'Modem Problemi',
+      category: 'REQUEST_TYPE',
+      key: 'MODEM_PROBLEM',
+      weight: 0,
+      isActive: true,
+    },
+    {
+      name: 'Kurulum Talebi',
+      category: 'REQUEST_TYPE',
+      key: 'INSTALLATION_REQUEST',
+      weight: 0,
+      isActive: true,
+    },
+    {
+      name: 'Hat Kesintisi',
+      category: 'REQUEST_TYPE',
+      key: 'LINE_CUT',
+      weight: 10,
+      isActive: true,
+    },
+    { name: 'IP Sorunu', category: 'REQUEST_TYPE', key: 'IP_PROBLEM', weight: 0, isActive: true },
+    { name: 'DNS Sorunu', category: 'REQUEST_TYPE', key: 'DNS_ISSUE', weight: 0, isActive: true },
+    {
+      name: 'Fiber Hasar',
+      category: 'REQUEST_TYPE',
+      key: 'FIBER_DAMAGE',
+      weight: 15,
+      isActive: true,
+    },
+    // Request Types - Paycell
+    {
+      name: 'Odeme Sorunu',
+      category: 'REQUEST_TYPE',
+      key: 'PAYMENT_PROBLEM',
+      weight: 10,
+      isActive: true,
+    },
+    {
+      name: 'Islem Basarisiz',
+      category: 'REQUEST_TYPE',
+      key: 'TRANSACTION_FAILED',
+      weight: 5,
+      isActive: true,
+    },
+    {
+      name: 'Iade Talebi',
+      category: 'REQUEST_TYPE',
+      key: 'REFUND_REQUEST',
+      weight: 5,
+      isActive: true,
+    },
+    { name: 'Kart Sorunu', category: 'REQUEST_TYPE', key: 'CARD_ISSUE', weight: 0, isActive: true },
+    {
+      name: 'Bakiye Hatasi',
+      category: 'REQUEST_TYPE',
+      key: 'BALANCE_ERROR',
+      weight: 5,
+      isActive: true,
+    },
+    {
+      name: 'Uye Isyeri Sorunu',
+      category: 'REQUEST_TYPE',
+      key: 'MERCHANT_PROBLEM',
+      weight: 0,
+      isActive: true,
+    },
+    // Request Types - TV+
+    {
+      name: 'Yayin Sorunu',
+      category: 'REQUEST_TYPE',
+      key: 'STREAMING_ISSUE',
+      weight: 5,
+      isActive: true,
+    },
+    {
+      name: 'Kanal Eksik',
+      category: 'REQUEST_TYPE',
+      key: 'CHANNEL_MISSING',
+      weight: 0,
+      isActive: true,
+    },
+    {
+      name: 'Altyazi Sorunu',
+      category: 'REQUEST_TYPE',
+      key: 'SUBTITLE_PROBLEM',
+      weight: 0,
+      isActive: true,
+    },
+    {
+      name: 'Uygulama Cokmesi',
+      category: 'REQUEST_TYPE',
+      key: 'APP_CRASH',
+      weight: 5,
+      isActive: true,
+    },
+    {
+      name: 'Giris Sorunu',
+      category: 'REQUEST_TYPE',
+      key: 'LOGIN_ISSUE',
+      weight: 5,
+      isActive: true,
+    },
+    {
+      name: 'Kalite Sorunu',
+      category: 'REQUEST_TYPE',
+      key: 'QUALITY_PROBLEM',
+      weight: 0,
+      isActive: true,
+    },
+    // Custom rules (example)
+    {
+      name: 'VIP Musteri Bonusu',
+      category: 'CUSTOM',
+      key: null,
+      condition: "city == 'Istanbul'",
+      weight: 5,
+      isActive: false,
+      description: 'Istanbul musterilerine ek oncelik',
+    },
   ];
 
-  for (const request of requests) {
-    await prisma.request.create({ data: request });
-  }
-  console.log(`Seeded ${requests.length} requests`);
-
-  // Seed Allocation Rules
-  const rules = [
-    { id: 'AR-1', condition: "urgency == 'HIGH'", weight: 50, isActive: true },
-    { id: 'AR-2', condition: "urgency == 'MEDIUM'", weight: 30, isActive: true },
-    { id: 'AR-3', condition: "urgency == 'LOW'", weight: 10, isActive: true },
-    { id: 'AR-4', condition: "service == 'Superonline'", weight: 20, isActive: true },
-  ];
-
-  for (const rule of rules) {
+  for (const rule of allocationRules) {
     await prisma.allocationRule.create({ data: rule });
   }
-  console.log(`Seeded ${rules.length} allocation rules`);
+  console.log(`Seeded ${allocationRules.length} allocation rules`);
 
-  // Seed Allocations
-  const allocations = [
-    { id: 'AL-1', requestId: 'REQ-1', resourceId: 'RES-1', priorityScore: 90, status: 'ASSIGNED', timestamp: new Date('2026-03-12T09:40:00Z') },
-    { id: 'AL-2', requestId: 'REQ-4', resourceId: 'RES-1', priorityScore: 85, status: 'ASSIGNED', timestamp: new Date('2026-03-12T10:30:00Z') },
-  ];
+  // NO requests or allocations - they will be created by the automation system
 
-  for (const allocation of allocations) {
-    await prisma.request.update({
-      where: { id: allocation.requestId },
-      data: { status: 'ASSIGNED' },
-    });
-    await prisma.allocation.create({ data: allocation });
-  }
-  console.log(`Seeded ${allocations.length} allocations`);
-
-  console.log('Seeding completed!');
+  console.log('Seeding completed! Start automation to begin the demo.');
 }
 
 main()

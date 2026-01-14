@@ -1,6 +1,6 @@
-import { prisma, io } from '../index';
+import { io, prisma } from '../index';
+import { sendAllocationNotification } from './notificationService';
 import { calculatePriority } from './priorityEngine';
-import { sendNotification } from './notificationService';
 
 interface AllocationResult {
   success: boolean;
@@ -66,10 +66,12 @@ export async function allocateRequest(requestId: string): Promise<AllocationResu
   io.emit('allocation:new', allocation);
   io.emit('dashboard:refresh');
 
-  // 8. Send mock notification
-  sendNotification(
+  // 8. Send mock BiP notification
+  await sendAllocationNotification(
     request.userId,
-    `Talebiniz öncelikli olarak işleme alındı. ${availableResource.resourceType === 'TECH_TEAM' ? 'Teknik ekip' : 'Destek personeli'} yönlendirildi.`
+    request.user.name,
+    request.service,
+    request.requestType,
   );
 
   return {
@@ -154,7 +156,7 @@ export async function autoAllocateAll(): Promise<AllocationResult[]> {
     pendingRequests.map(async (req) => ({
       request: req,
       priority: await calculatePriority(req),
-    }))
+    })),
   );
 
   requestsWithPriority.sort((a, b) => b.priority - a.priority);

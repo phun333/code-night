@@ -11,7 +11,7 @@ model User {
   id       String    @id
   name     String
   email    String    @unique
-  password String
+  password String?   // Only needed for ADMIN
   city     String
   role     String    @default("USER") // USER, ADMIN
   requests Request[]
@@ -35,23 +35,53 @@ model Request {
   urgency     String
   status      String      @default("PENDING")
   createdAt   DateTime    @default(now())
+  queuedAt    DateTime?   // Kuyruğa alınma zamanı
+  processedAt DateTime?   // İşlenme zamanı
   allocation  Allocation?
 }
 
 model Allocation {
-  id            String   @id @default(cuid())
-  requestId     String   @unique
-  request       Request  @relation(fields: [requestId], references: [id])
-  resourceId    String
-  resource      Resource @relation(fields: [resourceId], references: [id])
-  priorityScore Int
-  status        String   @default("ASSIGNED")
-  timestamp     DateTime @default(now())
+  id                   String    @id @default(cuid())
+  requestId            String    @unique
+  request              Request   @relation(fields: [requestId], references: [id])
+  resourceId           String
+  resource             Resource  @relation(fields: [resourceId], references: [id])
+  priorityScore        Int
+  status               String    @default("ASSIGNED")
+  timestamp            DateTime  @default(now())
+  expectedCompletionAt DateTime? // Tahmini tamamlanma zamanı
+  completedAt          DateTime? // Gerçek tamamlanma zamanı
 }
 
 model AllocationRule {
-  id        String  @id @default(cuid())
-  condition String
-  weight    Int
-  isActive  Boolean @default(true)
+  id          String   @id @default(cuid())
+  name        String
+  category    String   // 'URGENCY', 'SERVICE', 'REQUEST_TYPE', 'WAITING_TIME', 'CUSTOM'
+  key         String?  // System rules: 'HIGH', 'Superonline', etc.
+  condition   String?  // Custom rules: JS expression like "city == 'Istanbul'"
+  weight      Int
+  isActive    Boolean  @default(true)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([category, key])
+  @@index([category])
+  @@index([isActive])
 }
+
+model SystemLog {
+  id          String   @id @default(cuid())
+  eventType   String   // REQUEST_CREATED, ALLOCATION_ASSIGNED, ALLOCATION_COMPLETED, RESOURCE_BUSY, RESOURCE_AVAILABLE, SCORE_CALCULATED, QUEUE_ADDED
+  eventData   Json     // Tüm detaylar
+  entityType  String   // REQUEST, ALLOCATION, RESOURCE
+  entityId    String?
+  timestamp   DateTime @default(now())
+  metadata    Json?    // Performans metrikleri
+
+  @@index([eventType])
+  @@index([entityType])
+  @@index([timestamp])
+}
+
+

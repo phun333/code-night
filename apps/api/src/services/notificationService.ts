@@ -1,46 +1,58 @@
-// Mock BiP Notification Service
+import { PrismaClient } from '@prisma/client';
 
-interface Notification {
-  id: string;
-  userId: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
+const prisma = new PrismaClient();
+
+// Mock BiP bildirim - SystemLog'a kayıt atar
+export async function sendAllocationNotification(
+  userId: string,
+  userName: string,
+  service: string,
+  requestType: string,
+) {
+  const message = `Talebiniz oncelikli olarak isleme alindi. ${
+    requestType.includes('CONNECTION') || requestType.includes('SPEED')
+      ? 'Teknik ekip yonlendirildi.'
+      : 'Destek ekibi yonlendirildi.'
+  }`;
+
+  // SystemLog'a kaydet
+  await prisma.systemLog.create({
+    data: {
+      eventType: 'NOTIFICATION_SENT',
+      entityType: 'USER',
+      entityId: userId,
+      eventData: {
+        user_id: userId,
+        user_name: userName,
+        channel: 'BiP',
+        message: message,
+        service: service,
+        request_type: requestType,
+      },
+    },
+  });
+
+  console.log(`[BiP Mock] Bildirim gonderildi: ${userName} - ${message}`);
 }
 
-// In-memory notification store (mock)
-const notifications: Notification[] = [];
+// Tamamlanma bildirimi
+export async function sendCompletionNotification(userId: string, userName: string) {
+  const message =
+    'Talebiniz basariyla tamamlandi. Hizmetimizden memnun kaldiysaniz bizi degerlendirin.';
 
-export function sendNotification(userId: string, message: string): Notification {
-  const notification: Notification = {
-    id: `NOTIF-${Date.now()}`,
-    userId,
-    message,
-    timestamp: new Date(),
-    read: false,
-  };
+  await prisma.systemLog.create({
+    data: {
+      eventType: 'NOTIFICATION_SENT',
+      entityType: 'USER',
+      entityId: userId,
+      eventData: {
+        user_id: userId,
+        user_name: userName,
+        channel: 'BiP',
+        message: message,
+      },
+    },
+  });
 
-  notifications.push(notification);
-
-  // Log for demo purposes
-  console.log(`[BiP Mock] Notification sent to ${userId}: ${message}`);
-
-  return notification;
-}
-
-export function getNotifications(userId: string): Notification[] {
-  return notifications.filter((n) => n.userId === userId);
-}
-
-export function getAllNotifications(): Notification[] {
-  return notifications;
-}
-
-export function markAsRead(notificationId: string): boolean {
-  const notification = notifications.find((n) => n.id === notificationId);
-  if (notification) {
-    notification.read = true;
-    return true;
-  }
-  return false;
+  console.log(`[BiP Mock] Tamamlanma bildirimi: ${userName} - ${message}`);
 }
