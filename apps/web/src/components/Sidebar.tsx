@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BarChart3,
   Bell,
   FileText,
   GitBranch,
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/admin/rules', label: 'Kurallar', icon: Settings },
   { href: '/admin/notifications', label: 'Bildirimler', icon: Bell },
   { href: '/admin/logs', label: 'Sistem Loglari', icon: ScrollText },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 interface CityStatus {
