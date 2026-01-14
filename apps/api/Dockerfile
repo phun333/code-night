@@ -1,4 +1,5 @@
 FROM node:20-alpine AS base
+RUN apk add --no-cache openssl
 RUN npm install -g pnpm
 
 FROM base AS deps
@@ -24,7 +25,8 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Install prisma CLI (same version as project)
+# Install openssl and prisma CLI (same version as project)
+RUN apk add --no-cache openssl openssl-dev
 RUN npm install -g prisma@5.9.1
 
 COPY --from=builder /app/apps/api/dist ./dist
