@@ -51,4 +51,4 @@ RUN pnpm prisma generate
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "until pnpm prisma db push --skip-generate; do echo 'Waiting for database...'; sleep 3; done && node dist/index.js"]
+CMD ["sh", "-c", "until pnpm prisma db push --skip-generate --accept-data-loss; do echo 'Waiting for database...'; sleep 3; done && node dist/index.js"]
