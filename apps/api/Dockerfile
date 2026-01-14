@@ -24,8 +24,8 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Install prisma CLI for migrations
-RUN npm install -g prisma
+# Install prisma CLI (same version as project)
+RUN npm install -g prisma@5.9.1
 
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/apps/api/prisma ./prisma
