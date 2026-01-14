@@ -3,14 +3,19 @@
 import {
   Activity,
   AlertTriangle,
+  ArrowRight,
+  Check,
   Clock,
   FileText,
+  Loader2,
   Plus,
   RotateCcw,
   Save,
   Server,
   Settings,
+  Sparkles,
   Trash2,
+  X,
   Zap,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -32,6 +37,28 @@ interface AllocationRule {
   isActive: boolean;
   description: string | null;
 }
+
+interface AIChange {
+  action: 'update' | 'create' | 'delete';
+  ruleId?: string;
+  category?: string;
+  field?: string;
+  oldValue?: string | number | boolean;
+  newValue?: string | number | boolean;
+  description: string;
+  name?: string;
+  condition?: string;
+  success?: boolean;
+}
+
+interface AIResponse {
+  success: boolean;
+  interpretation?: string;
+  changes?: AIChange[];
+  error?: string;
+}
+
+const GEMINI_URL = process.env.NEXT_PUBLIC_GEMINI_URL || 'http://localhost:3002';
 
 type TabType = 'urgency' | 'service' | 'request_type' | 'waiting_time' | 'custom';
 
@@ -84,6 +111,12 @@ export default function RulesPage() {
   const [showNewRuleForm, setShowNewRuleForm] = useState(false);
   const { subscribe } = useWebSocket();
 
+  // AI States
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState<AIResponse | null>(null);
+  const [aiApplying, setAiApplying] = useState(false);
+
   const fetchData = useCallback(async () => {
     try {
       const data = await fetchAPI<Record<string, AllocationRule[]>>('/api/rules/by-category');
@@ -121,6 +154,66 @@ export default function RulesPage() {
     } catch (error) {
       console.error('Error deleting rule:', error);
     }
+  };
+
+  // AI Functions
+  const handleAiAnalyze = async () => {
+    if (!aiPrompt.trim()) return;
+
+    setAiLoading(true);
+    setAiResponse(null);
+
+    try {
+      const response = await fetch(`${GEMINI_URL}/api/ai/process-prompt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
+
+      const data = await response.json();
+      setAiResponse(data);
+    } catch (error) {
+      console.error('AI Error:', error);
+      setAiResponse({
+        success: false,
+        error: 'Gemini servisine baglanilamadi. Servisin calistigini kontrol edin.',
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAiApply = async () => {
+    if (!aiResponse?.changes || aiResponse.changes.length === 0) return;
+
+    setAiApplying(true);
+
+    try {
+      const response = await fetch(`${GEMINI_URL}/api/ai/apply-changes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ changes: aiResponse.changes }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Refresh rules
+        fetchData();
+        // Clear AI state
+        setAiPrompt('');
+        setAiResponse(null);
+      }
+    } catch (error) {
+      console.error('Apply Error:', error);
+    } finally {
+      setAiApplying(false);
+    }
+  };
+
+  const handleAiClear = () => {
+    setAiPrompt('');
+    setAiResponse(null);
   };
 
   if (loading) {
@@ -423,6 +516,123 @@ export default function RulesPage() {
           Yenile
         </Button>
       </div>
+
+      {/* AI Panel */}
+      <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-purple-700">
+            <Sparkles className="w-5 h-5" />
+            AI ile Kural Yonetimi
+          </CardTitle>
+          <CardDescription>
+            Dogal dilde yazin, Gemini AI kurallari sizin icin ayarlasin
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <textarea
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="Ornek: 'Superonline musterilerine oncelik ver' veya 'Acil taleplerin agirligini 80 yap'"
+              className="flex-1 min-h-[80px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={aiLoading}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              onClick={handleAiAnalyze}
+              disabled={aiLoading || !aiPrompt.trim()}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {aiLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Analiz Ediliyor...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Analiz Et
+                </>
+              )}
+            </Button>
+            {(aiPrompt || aiResponse) && (
+              <Button variant="outline" onClick={handleAiClear}>
+                <X className="w-4 h-4 mr-2" />
+                Temizle
+              </Button>
+            )}
+          </div>
+
+          {/* AI Response */}
+          {aiResponse && (
+            <div className="space-y-3 pt-2 border-t">
+              {aiResponse.error ? (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                  {aiResponse.error}
+                </div>
+              ) : (
+                <>
+                  {/* Interpretation */}
+                  {aiResponse.interpretation && (
+                    <div className="p-3 bg-white border rounded-lg">
+                      <p className="text-sm font-medium text-gray-600">AI Yorumu:</p>
+                      <p className="mt-1">{aiResponse.interpretation}</p>
+                    </div>
+                  )}
+
+                  {/* Changes */}
+                  {aiResponse.changes && aiResponse.changes.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-600">Yapilacak Degisiklikler:</p>
+                      {aiResponse.changes.map((change, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 p-2 bg-white border rounded-lg"
+                        >
+                          <ArrowRight className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                          <span className="text-sm">{change.description}</span>
+                          {change.success !== undefined && (
+                            change.success ? (
+                              <Check className="w-4 h-4 text-green-500 ml-auto" />
+                            ) : (
+                              <X className="w-4 h-4 text-red-500 ml-auto" />
+                            )
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Apply Button */}
+                      <Button
+                        onClick={handleAiApply}
+                        disabled={aiApplying}
+                        className="w-full bg-green-600 hover:bg-green-700 mt-2"
+                      >
+                        {aiApplying ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uygulanıyor...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4 mr-2" />
+                            Degisiklikleri Uygula
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700">
+                      Bu istek icin yapilacak bir degisiklik bulunamadi.
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Tabs */}
       <div className="flex gap-2 flex-wrap border-b pb-2">
