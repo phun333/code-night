@@ -19,7 +19,11 @@ export interface Resource {
 
 // Request
 export type Service = 'Superonline' | 'Paycell' | 'TV+';
-export type RequestType = 'CONNECTION_ISSUE' | 'PAYMENT_PROBLEM' | 'STREAMING_ISSUE' | 'SPEED_COMPLAINT';
+export type RequestType =
+  | 'CONNECTION_ISSUE'
+  | 'PAYMENT_PROBLEM'
+  | 'STREAMING_ISSUE'
+  | 'SPEED_COMPLAINT';
 export type Urgency = 'HIGH' | 'MEDIUM' | 'LOW';
 export type RequestStatus = 'PENDING' | 'ASSIGNED' | 'COMPLETED';
 
