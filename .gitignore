@@ -1,0 +1,44 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+.next
+out
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage
+
+# Prisma
+*.db
+*.db-journal
+
+# Turbo
+.turbo
+CASE 2-1.pdf
+seed-data/allocation_rules.csv
+seed-data/allocations.csv
+seed-data/resources.csv
+seed-data/requests.csv
+seed-data/users.csv
