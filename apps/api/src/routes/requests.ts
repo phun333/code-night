@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { io, prisma } from '../index';
+import { logRequestCreated } from '../services/logService';
 import { calculatePriority } from '../services/priorityEngine';
 
 const router = Router();
@@ -75,6 +76,9 @@ router.post('/', async (req, res) => {
     });
 
     const priorityScore = await calculatePriority(request);
+
+    // Log the request creation
+    await logRequestCreated(request.id, data.userId, data.service, data.requestType, data.urgency);
 
     // Emit WebSocket event
     io.emit('request:new', { ...request, priorityScore });

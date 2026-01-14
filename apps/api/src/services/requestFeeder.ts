@@ -1,10 +1,12 @@
 import { REQUEST_TYPE_SERVICE_MAP, REQUEST_TYPES, SERVICES, URGENCIES } from '@turkcell/shared';
 import { io, prisma } from '../index';
-import { logRequestCreated } from './logService';
 
 let feedInterval: NodeJS.Timeout | null = null;
 let isFeeding = false;
 let requestCount = 0;
+
+// API base URL for internal calls
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 // Get random item from array
 function getRandomItem<T>(arr: readonly T[]): T {
@@ -25,7 +27,7 @@ async function getRandomUser() {
   return getRandomItem(users);
 }
 
-// Create a random request
+// Create a random request via POST /api/requests
 async function createRandomRequest() {
   const user = await getRandomUser();
 
@@ -46,28 +48,30 @@ async function createRandomRequest() {
     urgency = 'LOW';
   }
 
-  const request = await prisma.request.create({
-    data: {
+  // Call POST /api/requests endpoint
+  const response = await fetch(`${API_BASE_URL}/api/requests`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
       userId: user.id,
       service,
       requestType,
       urgency,
-      status: 'PENDING',
-    },
-    include: { user: true },
+    }),
   });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create request: ${response.statusText}`);
+  }
+
+  const request = await response.json();
 
   requestCount++;
   console.log(
-    `[${requestCount}] New request: ${user.name} (${user.city}) - ${service}/${requestType} - ${urgency}`,
+    `[${requestCount}] New request via API: ${user.name} (${user.city}) - ${service}/${requestType} - ${urgency}`,
   );
-
-  // Log the request creation
-  await logRequestCreated(request.id, user.id, service, requestType, urgency);
-
-  // Emit events
-  io.emit('request:new', request);
-  io.emit('dashboard:refresh');
 
   return request;
 }

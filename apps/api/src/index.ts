@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import swaggerUi from 'swagger-ui-express';
 import allocationsRouter from './routes/allocations';
+import analyticsRouter from './routes/analytics';
 import dashboardRouter from './routes/dashboard';
 import logsRouter from './routes/logs';
 import notificationsRouter from './routes/notifications';
@@ -71,6 +72,7 @@ app.use('/api/rules', rulesRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/logs', logsRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/analytics', analyticsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
