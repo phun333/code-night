@@ -17,6 +17,12 @@ COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Build shared package first
+WORKDIR /app/packages/shared
+RUN pnpm build
+
+# Build API
 WORKDIR /app/apps/api
 RUN pnpm prisma generate
 RUN pnpm build
@@ -29,10 +35,12 @@ ENV NODE_ENV=production
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
-COPY packages/shared ./packages/shared
 RUN pnpm install --prod --frozen-lockfile
 
-# Copy built files
+# Copy built shared package
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+
+# Copy built API files
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 
