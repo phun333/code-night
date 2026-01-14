@@ -36,9 +36,10 @@ coverage
 
 # Turbo
 .turbo
-CASE 2-1.pdf
 seed-data/allocation_rules.csv
 seed-data/allocations.csv
 seed-data/resources.csv
 seed-data/requests.csv
 seed-data/users.csv
+
+CASE 2.pdf
