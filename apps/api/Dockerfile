@@ -35,9 +35,11 @@ RUN pnpm install --prod --frozen-lockfile
 # Copy built files
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
-COPY --from=builder /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
 
 WORKDIR /app/apps/api
+
+# Generate prisma client
+RUN pnpm prisma generate
 
 EXPOSE 3001
 
