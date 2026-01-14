@@ -25,15 +25,20 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Install openssl and prisma CLI (same version as project)
-RUN apk add --no-cache openssl openssl-dev
-RUN npm install -g prisma@5.9.1
+# Copy package files and install production deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+COPY packages/shared ./packages/shared
+RUN pnpm install --prod --frozen-lockfile
 
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/prisma ./prisma
-COPY --from=builder /app/apps/api/node_modules ./node_modules
-COPY --from=builder /app/apps/api/package.json ./
+# Copy built files
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+COPY --from=builder /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
+
+WORKDIR /app/apps/api
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "until prisma migrate deploy; do echo 'Waiting for database...'; sleep 3; done && node dist/index.js"]
+CMD ["sh", "-c", "until pnpm prisma db push --skip-generate; do echo 'Waiting for database...'; sleep 3; done && node dist/index.js"]
