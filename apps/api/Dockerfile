@@ -24,6 +24,9 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Install prisma CLI for migrations
+RUN npm install -g prisma
+
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/apps/api/prisma ./prisma
 COPY --from=builder /app/apps/api/node_modules ./node_modules
@@ -31,4 +34,4 @@ COPY --from=builder /app/apps/api/package.json ./
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "prisma migrate deploy && node dist/index.js"]
