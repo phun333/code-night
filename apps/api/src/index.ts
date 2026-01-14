@@ -29,6 +29,10 @@ export const io = new Server(httpServer, {
     ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   },
+  pingInterval: 10000,
+  pingTimeout: 5000,
+  connectTimeout: 10000,
+  transports: ['websocket', 'polling'],
 });
 
 // Middleware
@@ -91,3 +95,29 @@ httpServer.listen(PORT, async () => {
   console.log('Starting allocation system...');
   await startSystem();
 });
+
+// Graceful shutdown
+const gracefulShutdown = async (signal: string) => {
+  console.log(`${signal} received, shutting down gracefully...`);
+
+  // Socket bağlantılarını kapat
+  io.close();
+
+  // Prisma bağlantılarını kapat
+  await prisma.$disconnect();
+
+  // HTTP server'ı kapat
+  httpServer.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+
+  // 10 saniye içinde kapanmazsa zorla kapat
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

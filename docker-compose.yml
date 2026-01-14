@@ -12,6 +12,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
     networks:
       - app-network
 
@@ -20,7 +27,7 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/smart_allocation
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/smart_allocation?connection_limit=20&pool_timeout=30&connect_timeout=10
       PORT: 3001
       NODE_ENV: production
     expose:
@@ -29,6 +36,13 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
     networks:
       - app-network
 
@@ -45,6 +59,13 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
     networks:
       - app-network
 

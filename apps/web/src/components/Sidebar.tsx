@@ -67,9 +67,7 @@ export function Sidebar() {
     <aside className="w-72 bg-gradient-to-b from-[#0065a1] to-[#004d7a] text-white flex flex-col">
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#ffc72c] rounded-lg flex items-center justify-center">
-            <Zap className="w-6 h-6 text-[#0065a1]" />
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
           <div>
             <h1 className="font-bold text-lg">Smart Allocation</h1>
             <p className="text-xs text-white/60">Admin Panel</p>
