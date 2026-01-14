@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { API_URL } from '@/lib/utils';
 
@@ -40,7 +40,7 @@ export function useWebSocket() {
       }
       return () => {};
     },
-    [socket]
+    [socket],
   );
 
   return { socket, isConnected, subscribe };

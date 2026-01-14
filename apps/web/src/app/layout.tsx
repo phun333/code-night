@@ -9,11 +9,7 @@ export const metadata: Metadata = {
   description: 'Dinamik Kaynak ve Öncelik Yönetim Platformu',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr">
       <body className={inter.className}>{children}</body>
