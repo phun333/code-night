@@ -30,8 +30,8 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/smart_allocation?connection_limit=20&pool_timeout=30&connect_timeout=10
       PORT: 3001
       NODE_ENV: production
-    expose:
-      - "3001"
+    ports:
+      - "3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,11 +51,11 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://api.codenight.aliselvet.xyz
+        NEXT_PUBLIC_API_URL: http://localhost:3001
     environment:
       NODE_ENV: production
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     depends_on:
       - api
     restart: unless-stopped

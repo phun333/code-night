@@ -16,7 +16,7 @@ const CONFIG = {
   REQUEST_INTERVAL: 2000, // New request every 2 seconds
   ALLOCATION_INTERVAL: 1000, // Check for allocations every 1 second
   COMPLETION_INTERVAL: 500, // Check completions every 0.5 seconds
-  MIN_COMPLETION_TIME: 5000, // 5 seconds minimum
+  MIN_COMPLETION_TIME: 10000, // 10 seconds minimum
   MAX_COMPLETION_TIME: 15000, // 15 seconds maximum
 };
 
@@ -24,7 +24,7 @@ let isRunning = false;
 let allocationInterval: NodeJS.Timeout | null = null;
 let completionInterval: NodeJS.Timeout | null = null;
 
-// Generate random completion time (5-15 seconds)
+// Generate random completion time (10-15 seconds)
 function getRandomCompletionTime(): number {
   return (
     Math.floor(Math.random() * (CONFIG.MAX_COMPLETION_TIME - CONFIG.MIN_COMPLETION_TIME + 1)) +
