@@ -6,15 +6,11 @@ import {
   ArrowRight,
   CheckCircle,
   Clock,
-  Pause,
-  Play,
-  RotateCcw,
   User,
   Zap,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -76,27 +72,6 @@ export default function AdminDashboard() {
       unsub3();
     };
   }, [subscribe]);
-
-  const handleToggleAutomation = async () => {
-    try {
-      const endpoint = data?.automationStatus.isRunning
-        ? '/api/automation/stop'
-        : '/api/automation/start';
-      await fetchAPI(endpoint, { method: 'POST' });
-      fetchDashboard();
-    } catch (error) {
-      console.error('Error toggling automation:', error);
-    }
-  };
-
-  const handleRestart = async () => {
-    try {
-      await fetchAPI('/api/automation/restart', { method: 'POST' });
-      fetchDashboard();
-    } catch (error) {
-      console.error('Error restarting automation:', error);
-    }
-  };
 
   if (loading) {
     return (
@@ -170,30 +145,6 @@ export default function AdminDashboard() {
             <span className="text-sm">{isConnected ? 'Canli' : 'Baglanti Yok'}</span>
           </div>
 
-          {/* Restart Button */}
-          <Button onClick={handleRestart} variant="outline" className="gap-2">
-            <RotateCcw className="w-4 h-4" />
-            Sifirla ve Baslat
-          </Button>
-
-          {/* Toggle Button */}
-          <Button
-            onClick={handleToggleAutomation}
-            variant={data.automationStatus.isRunning ? 'destructive' : 'default'}
-            className="gap-2"
-          >
-            {data.automationStatus.isRunning ? (
-              <>
-                <Pause className="w-4 h-4" />
-                Durdur
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4" />
-                Baslat
-              </>
-            )}
-          </Button>
         </div>
       </div>
 
@@ -344,10 +295,10 @@ export default function AdminDashboard() {
               ) : (
                 <div className="divide-y">
                   {activeAllocations.map((allocation: any) => (
-                    <div key={allocation.id} className="p-3 hover:bg-muted/50 bg-purple-50/50">
+                    <div key={allocation.id} className="p-3 hover:bg-muted/50 bg-blue-50/50">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                          <Activity className="w-5 h-5 text-purple-600 animate-pulse" />
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                          <Activity className="w-5 h-5 text-blue-700 animate-pulse" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
@@ -368,7 +319,7 @@ export default function AdminDashboard() {
                           <div className="mt-2">
                             <Progress
                               value={allocation.progress || 0}
-                              className="h-1.5 [&>div]:bg-purple-500 [&>div]:transition-all"
+                              className="h-1.5 [&>div]:bg-blue-600 [&>div]:transition-all"
                             />
                           </div>
                         </div>
@@ -383,7 +334,7 @@ export default function AdminDashboard() {
 
         {/* Completed Tasks */}
         <Card className="col-span-1">
-          <CardHeader className="pb-2 bg-gradient-to-r from-green-500 to-green-400 text-white rounded-t-lg">
+          <CardHeader className="pb-2 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white rounded-t-lg">
             <CardTitle className="text-sm flex items-center gap-2">
               <ArrowRight className="w-4 h-4" />
               Tamamlanan Talepler
@@ -402,10 +353,10 @@ export default function AdminDashboard() {
               ) : (
                 <div className="divide-y">
                   {recentCompleted.map((allocation: any) => (
-                    <div key={allocation.id} className="p-3 hover:bg-muted/50 bg-green-50/50">
+                    <div key={allocation.id} className="p-3 hover:bg-muted/50 bg-cyan-50/50">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
+                          <CheckCircle className="w-5 h-5 text-cyan-600" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
@@ -419,7 +370,7 @@ export default function AdminDashboard() {
                               : 'Destek Ekip'}{' '}
                             - {allocation.resource?.city}
                           </p>
-                          <p className="text-xs text-green-600 mt-1">
+                          <p className="text-xs text-cyan-600 mt-1">
                             {allocation.request?.service}
                           </p>
                         </div>
@@ -429,7 +380,7 @@ export default function AdminDashboard() {
                               ? formatTime(allocation.completedAt)
                               : formatTime(allocation.timestamp)}
                           </span>
-                          <p className="text-lg font-bold text-green-600">
+                          <p className="text-lg font-bold text-cyan-700">
                             {allocation.priorityScore}
                           </p>
                         </div>
