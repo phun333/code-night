@@ -199,38 +199,38 @@ export default function AdminDashboard() {
 
       {/* Main Stats */}
       <div className="grid grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-300">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-700">Kuyrukta Bekleyen</p>
-                <p className="text-4xl font-bold text-orange-800">{data.stats.queuedRequests}</p>
+                <p className="text-sm text-amber-700">Kuyrukta Bekleyen</p>
+                <p className="text-4xl font-bold text-amber-800">{data.stats.queuedRequests}</p>
               </div>
-              <Clock className="w-10 h-10 text-orange-400" />
+              <Clock className="w-10 h-10 text-amber-500" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-700">Aktif Islem</p>
-                <p className="text-4xl font-bold text-purple-800">{data.stats.activeAllocations}</p>
+                <p className="text-sm text-blue-700">Aktif Islem</p>
+                <p className="text-4xl font-bold text-blue-900">{data.stats.activeAllocations}</p>
               </div>
-              <Activity className="w-10 h-10 text-purple-400" />
+              <Activity className="w-10 h-10 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+        <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-300">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-700">Bugun Tamamlanan</p>
-                <p className="text-4xl font-bold text-green-800">+{data.stats.todayCompleted}</p>
+                <p className="text-sm text-cyan-700">Bugun Tamamlanan</p>
+                <p className="text-4xl font-bold text-cyan-800">+{data.stats.todayCompleted}</p>
               </div>
-              <CheckCircle className="w-10 h-10 text-green-400" />
+              <CheckCircle className="w-10 h-10 text-cyan-500" />
             </div>
           </CardContent>
         </Card>
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-3 gap-4">
         {/* Incoming Tasks (Queue) */}
         <Card className="col-span-1">
-          <CardHeader className="pb-2 bg-gradient-to-r from-orange-500 to-orange-400 text-white rounded-t-lg">
+          <CardHeader className="pb-2 bg-gradient-to-r from-amber-500 to-amber-400 text-white rounded-t-lg">
             <CardTitle className="text-sm flex items-center gap-2">
               <ArrowDown className="w-4 h-4" />
               Gelen Talepler
@@ -276,16 +276,16 @@ export default function AdminDashboard() {
                     <div
                       key={request.id}
                       className={`p-3 hover:bg-muted/50 ${
-                        index === 0 ? 'bg-orange-50 border-l-4 border-orange-500' : ''
+                        index === 0 ? 'bg-amber-50 border-l-4 border-amber-500' : ''
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                             index === 0
-                              ? 'bg-orange-500 text-white'
+                              ? 'bg-amber-500 text-white'
                               : index < 3
-                                ? 'bg-orange-200 text-orange-700'
+                                ? 'bg-amber-200 text-amber-700'
                                 : 'bg-muted text-muted-foreground'
                           }`}
                         >
@@ -325,7 +325,7 @@ export default function AdminDashboard() {
 
         {/* Active Processing */}
         <Card className="col-span-1">
-          <CardHeader className="pb-2 bg-gradient-to-r from-purple-500 to-purple-400 text-white rounded-t-lg">
+          <CardHeader className="pb-2 bg-gradient-to-r from-blue-700 to-blue-600 text-white rounded-t-lg">
             <CardTitle className="text-sm flex items-center gap-2">
               <Activity className="w-4 h-4 animate-pulse" />
               Aktif Islemler
