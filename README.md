@@ -1,17 +1,18 @@
 # Turkcell Smart Allocation
 
-<div align="center">
+
+
 
 **Dinamik Kaynak ve Öncelik Yönetim Platformu**
 
-*Turkcell Hackathon 2026*
+*Turkcell Code Night 2026*
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![Express](https://img.shields.io/badge/Express-4.18-green?logo=express)](https://expressjs.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)](https://postgresql.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?logo=typescript)](https://typescriptlang.org/)
 
-</div>
+
 
 ---
 
